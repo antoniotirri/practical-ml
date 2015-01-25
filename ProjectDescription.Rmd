@@ -21,7 +21,7 @@ set.seed(28071984)
 Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: "NA" values and “#DIV/0!”. Moreover, all the values are separated by a comma.
 Only the variables that contains the names 
 
-** _arm _belt _dumbbell _forearm **     
+*_arm _belt _dumbbell _forearm*     
 
 are related to sensor values. The other ones are information not useful for the prediction purpose.The Classe variable is the outcome we want to predict.
 
