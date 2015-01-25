@@ -2,7 +2,7 @@
 title: "Coursera Practical ML"
 output: html_document
 ---
-**GENERAL INFORMATION**
+##GENERAL INFORMATION
 The purpose of this project is to classify a set of exercise movements.
 There are four classes (A,B,C,D,E) corresponding to the labels "Correct","Throwing elbows to the front", "lifting dumbbell only halfway", "lowering dumbbell only halfaway", "throwing hips to the front".
 The data for this project come from this source: <http://groupware.les.inf.puc-rio.br/har>. 
@@ -17,7 +17,7 @@ set.seed(28071984)
 ```
 
 
-**DATA EXPLORATION**
+##DATA EXPLORATION
 Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: "NA" values and “#DIV/0!”. Moreover, all the values are separated by a comma.
 Only the variables that contains the names 
 
@@ -26,7 +26,7 @@ Only the variables that contains the names
 are related to sensor values. The other ones are information not useful for the prediction purpose.The Classe variable is the outcome we want to predict.
 
 
-**DATA LOADING AND CLEANING**
+##DATA LOADING AND CLEANING
 First of all we load the dataset
 
 ```{r}
@@ -61,7 +61,7 @@ inTrain=createDataPartition(y=tr$classe,p=0.7,list=F)
 training=tr[inTrain,]
 testing=tr[-inTrain,]
 ```
-**PREDICTION MODEL AND OOB ERROR**
+##PREDICTION MODEL AND OOB ERROR
 For the creation of the prediction model, we use the Random Forest function
 ```{r}
 modFit=randomForest(classe~., data=tr)
@@ -70,7 +70,7 @@ modFit
 
 The estimate of OOB error is really low (0.28%)
 
-**PREDICTING NEW VALUES**
+##PREDICTING NEW VALUES
 In order to predict the classe label for the testing values, we perform this command
 ```{r}
 pred=predict(modFit,testing)

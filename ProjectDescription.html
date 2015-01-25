@@ -55,7 +55,9 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 
 
-<p><strong>GENERAL INFORMATION</strong> The purpose of this project is to classify a set of exercise movements. There are four classes (A,B,C,D,E) corresponding to the labels “Correct”,“Throwing elbows to the front”, “lifting dumbbell only halfway”, “lowering dumbbell only halfaway”, “throwing hips to the front”. The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. There are two datasets. A training dataset <em>pml_training.csv</em> and a test dataset <em>pml_testing.csv</em></p>
+<div id="general-information" class="section level2">
+<h2>GENERAL INFORMATION</h2>
+<p>The purpose of this project is to classify a set of exercise movements. There are four classes (A,B,C,D,E) corresponding to the labels “Correct”,“Throwing elbows to the front”, “lifting dumbbell only halfway”, “lowering dumbbell only halfaway”, “throwing hips to the front”. The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. There are two datasets. A training dataset <em>pml_training.csv</em> and a test dataset <em>pml_testing.csv</em></p>
 <p>First of all let’s load the packages that wil lbe used and let’s set a seed for reproducibility</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
@@ -64,10 +66,16 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <pre><code>## randomForest 4.6-10
 ## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <pre class="r"><code>set.seed(28071984)</code></pre>
-<p><strong>DATA EXPLORATION</strong> Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: “NA” values and “#DIV/0!”. Moreover, all the values are separated by a comma. Only the variables that contains the names</p>
+</div>
+<div id="data-exploration" class="section level2">
+<h2>DATA EXPLORATION</h2>
+<p>Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: “NA” values and “#DIV/0!”. Moreover, all the values are separated by a comma. Only the variables that contains the names</p>
 <p>** <em>arm </em>belt <em>dumbbell </em>forearm **</p>
 <p>are related to sensor values. The other ones are information not useful for the prediction purpose.The Classe variable is the outcome we want to predict.</p>
-<p><strong>DATA LOADING AND CLEANING</strong> First of all we load the dataset</p>
+</div>
+<div id="data-loading-and-cleaning" class="section level2">
+<h2>DATA LOADING AND CLEANING</h2>
+<p>First of all we load the dataset</p>
 <pre class="r"><code>pml_training = read.csv(&quot;pml-training.csv&quot;, header = TRUE, sep = &quot;,&quot;, na.strings = c(&quot;NA&quot;, &quot;#DIV/0!&quot;))</code></pre>
 <p>Then we use only the sensor data related variables together with the classe variable</p>
 <pre class="r"><code>colOfInterest = grep(pattern = &quot;_arm|_belt|_dumbbell|_forearm&quot;, names(pml_training))
@@ -187,7 +195,10 @@ After that, let’s create training (70%) and testing (30%) set from the data we
 <pre class="r"><code>inTrain=createDataPartition(y=tr$classe,p=0.7,list=F)
 training=tr[inTrain,]
 testing=tr[-inTrain,]</code></pre>
-<p><strong>PREDICTION MODEL AND OOB ERROR</strong> For the creation of the prediction model, we use the Random Forest function</p>
+</div>
+<div id="prediction-model-and-oob-error" class="section level2">
+<h2>PREDICTION MODEL AND OOB ERROR</h2>
+<p>For the creation of the prediction model, we use the Random Forest function</p>
 <pre class="r"><code>modFit=randomForest(classe~., data=tr)
 modFit</code></pre>
 <pre><code>## 
@@ -206,7 +217,10 @@ modFit</code></pre>
 ## D    0    0   20 3195    1 0.0065298507
 ## E    0    0    1    4 3602 0.0013861935</code></pre>
 <p>The estimate of OOB error is really low (0.28%)</p>
-<p><strong>PREDICTING NEW VALUES</strong> In order to predict the classe label for the testing values, we perform this command</p>
+</div>
+<div id="predicting-new-values" class="section level2">
+<h2>PREDICTING NEW VALUES</h2>
+<p>In order to predict the classe label for the testing values, we perform this command</p>
 <pre class="r"><code>pred=predict(modFit,testing)</code></pre>
 <p>The related confusion Matrix is:</p>
 <pre class="r"><code>confusionMatrix(pred,testing$classe)</code></pre>
@@ -243,6 +257,7 @@ modFit</code></pre>
 ## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
 <p>The Overall Statistics section (Accuracy, Kappa) shows the out-of-sample error rate. In particular, in this case Accuracy is 100%.</p>
 <p>Using the dataset <strong>pml_testing.csv</strong> as new data, it is possible to see that all the cases were correctly predicted.</p>
+</div>
 
 
 </div>
