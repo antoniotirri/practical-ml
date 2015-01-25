@@ -1,10 +1,12 @@
 ---
 title: "Coursera Practical ML"
-output: html_document
+output:
+  html_document:
+    toc: yes
 ---
 ##GENERAL INFORMATION
 The purpose of this project is to classify a set of exercise movements.
-There are four classes (A,B,C,D,E) corresponding to the labels "Correct","Throwing elbows to the front", "lifting dumbbell only halfway", "lowering dumbbell only halfaway", "throwing hips to the front".
+There are four classes (A,B,C,D,E) corresponding to the labels "Correct","Throwing the elbows to the front", "lifting the dumbbell only halfway", "lowering the dumbbell only halfaway", "throwing the hips to the front".
 The data for this project come from this source: <http://groupware.les.inf.puc-rio.br/har>. 
 There are two datasets. A training dataset *pml_training.csv* and a test dataset *pml_testing.csv*
 

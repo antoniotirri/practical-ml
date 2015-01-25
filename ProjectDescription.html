@@ -54,10 +54,19 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <h1 class="title">Coursera Practical ML</h1>
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#general-information">GENERAL INFORMATION</a></li>
+<li><a href="#data-exploration">DATA EXPLORATION</a></li>
+<li><a href="#data-loading-and-cleaning">DATA LOADING AND CLEANING</a></li>
+<li><a href="#prediction-model-and-oob-error">PREDICTION MODEL AND OOB ERROR</a></li>
+<li><a href="#predicting-new-values">PREDICTING NEW VALUES</a></li>
+</ul>
+</div>
 
 <div id="general-information" class="section level2">
 <h2>GENERAL INFORMATION</h2>
-<p>The purpose of this project is to classify a set of exercise movements. There are four classes (A,B,C,D,E) corresponding to the labels “Correct”,“Throwing elbows to the front”, “lifting dumbbell only halfway”, “lowering dumbbell only halfaway”, “throwing hips to the front”. The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. There are two datasets. A training dataset <em>pml_training.csv</em> and a test dataset <em>pml_testing.csv</em></p>
+<p>The purpose of this project is to classify a set of exercise movements. There are four classes (A,B,C,D,E) corresponding to the labels “Correct”,“Throwing the elbows to the front”, “lifting the dumbbell only halfway”, “lowering the dumbbell only halfaway”, “throwing the hips to the front”. The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. There are two datasets. A training dataset <em>pml_training.csv</em> and a test dataset <em>pml_testing.csv</em></p>
 <p>First of all let’s load the packages that wil lbe used and let’s set a seed for reproducibility</p>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: lattice
