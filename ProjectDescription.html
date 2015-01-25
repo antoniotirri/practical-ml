@@ -1,0 +1,322 @@
+<html>
+
+<head>
+<style type="text/css">
+.knitr.inline {
+  background-color: #f7f7f7;
+  border:solid 1px #B0B0B0;
+}
+.error {
+	font-weight: bold;
+	color: #FF0000;
+},
+.warning {
+	font-weight: bold;
+}
+.message {
+	font-style: italic;
+}
+.source, .output, .warning, .error, .message {
+	padding: 0em 1em;
+  border:solid 1px #F7F7F7;
+}
+.source {
+  background-color: #f5f5f5;
+}
+.rimage.left {
+  text-align: left;
+}
+.rimage.right {
+  text-align: right;
+}
+.rimage.center {
+  text-align: center;
+}
+.hl.num {
+  color: #AF0F91;
+}
+.hl.str {
+  color: #317ECC;
+}
+.hl.com {
+  color: #AD95AF;
+  font-style: italic;
+}
+.hl.opt {
+  color: #000000;
+}
+.hl.std {
+  color: #585858;
+}
+.hl.kwa {
+  color: #295F94;
+  font-weight: bold;
+}
+.hl.kwb {
+  color: #B05A65;
+}
+.hl.kwc {
+  color: #55aa55;
+}
+.hl.kwd {
+  color: #BC5A65;
+  font-weight: bold;
+}
+</style>
+<title>Coursera Practical Machine Learning Project Work</title>
+</head>
+
+<body>
+
+<b>GENERAL INFORMATION</b>
+<p>
+The purpose of this project is to classify a set of exercise movements.
+There are four classes (A,B,C,D,E) corresponding to the labels "Correct","Throwing elbows to the front", "lifting dumbbell only halfway", "lowering dumbbell only halfaway", "throwing hips to the front".
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. 
+There are two datasets. A training dataset  
+<div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># pml_training.csv</span>
+</pre></div>
+</div></div>
+and a test dataset
+<div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># pml_testing.csv</span>
+</pre></div>
+</div></div>
+</p>
+
+First of all let's load the packages that wil lbe used and let's set a seed for reproducibility
+
+<div class="chunk" id="unnamed-chunk-3"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(caret)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## Loading required package: lattice
+## Loading required package: ggplot2
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">library</span><span class="hl std">(randomForest)</span>
+</pre></div>
+<div class="message"><pre class="knitr r">## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.
+</pre></div>
+<div class="source"><pre class="knitr r"><span class="hl kwd">set.seed</span><span class="hl std">(</span><span class="hl num">28071984</span><span class="hl std">)</span>
+</pre></div>
+</div></div>
+
+
+<b>DATA EXPLORATION</b>
+<p>Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: "NA" values and “#DIV/0!”. Moreover, all the values are separated by a comma.
+Only the variables that contains the names 
+<div class="chunk" id="unnamed-chunk-4"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># _arm _belt _dumbbell _forearm</span>
+</pre></div>
+</div></div>
+
+are related to sensor values. The other ones are information not useful for the prediction purpose. The Classe variable is the outcome we want to predict.
+</p>
+
+<b>DATA LOADING AND CLEANING</b>
+<p>First of all we load the dataset</p>
+
+<div class="chunk" id="unnamed-chunk-5"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">pml_training</span> <span class="hl kwb">=</span> <span class="hl kwd">read.csv</span><span class="hl std">(</span><span class="hl str">&quot;pml-training.csv&quot;</span><span class="hl std">,</span> <span class="hl kwc">header</span> <span class="hl std">=</span> <span class="hl num">TRUE</span><span class="hl std">,</span> <span class="hl kwc">sep</span> <span class="hl std">=</span> <span class="hl str">&quot;,&quot;</span><span class="hl std">,</span> <span class="hl kwc">na.strings</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;NA&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;#DIV/0!&quot;</span><span class="hl std">))</span>
+</pre></div>
+</div></div>
+<p>Then we use only the sensor data related variables together with the classe variable</p>
+<div class="chunk" id="unnamed-chunk-6"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">colOfInterest</span> <span class="hl kwb">=</span> <span class="hl kwd">grep</span><span class="hl std">(</span><span class="hl kwc">pattern</span> <span class="hl std">=</span> <span class="hl str">&quot;_arm|_belt|_dumbbell|_forearm&quot;</span><span class="hl std">,</span> <span class="hl kwd">names</span><span class="hl std">(pml_training))</span>
+<span class="hl std">columnsOfInterestTraining</span><span class="hl kwb">=</span><span class="hl kwd">c</span><span class="hl std">(colOfInterest,</span><span class="hl kwd">dim</span><span class="hl std">(pml_training)[</span><span class="hl num">2</span><span class="hl std">])</span>
+<span class="hl std">train</span><span class="hl kwb">=</span><span class="hl std">pml_training[,columnsOfInterestTraining]</span>
+</pre></div>
+</div></div>
+
+<p>If we perform the command
+
+<div class="chunk" id="unnamed-chunk-7"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">colSums</span><span class="hl std">(</span><span class="hl kwd">is.na</span><span class="hl std">(train))</span>
+</pre></div>
+<div class="output"><pre class="knitr r">##                roll_belt               pitch_belt                 yaw_belt 
+##                        0                        0                        0 
+##         total_accel_belt       kurtosis_roll_belt      kurtosis_picth_belt 
+##                        0                    19226                    19248 
+##        kurtosis_yaw_belt       skewness_roll_belt     skewness_roll_belt.1 
+##                    19622                    19225                    19248 
+##        skewness_yaw_belt            max_roll_belt           max_picth_belt 
+##                    19622                    19216                    19216 
+##             max_yaw_belt            min_roll_belt           min_pitch_belt 
+##                    19226                    19216                    19216 
+##             min_yaw_belt      amplitude_roll_belt     amplitude_pitch_belt 
+##                    19226                    19216                    19216 
+##       amplitude_yaw_belt     var_total_accel_belt            avg_roll_belt 
+##                    19226                    19216                    19216 
+##         stddev_roll_belt            var_roll_belt           avg_pitch_belt 
+##                    19216                    19216                    19216 
+##        stddev_pitch_belt           var_pitch_belt             avg_yaw_belt 
+##                    19216                    19216                    19216 
+##          stddev_yaw_belt             var_yaw_belt             gyros_belt_x 
+##                    19216                    19216                        0 
+##             gyros_belt_y             gyros_belt_z             accel_belt_x 
+##                        0                        0                        0 
+##             accel_belt_y             accel_belt_z            magnet_belt_x 
+##                        0                        0                        0 
+##            magnet_belt_y            magnet_belt_z                 roll_arm 
+##                        0                        0                        0 
+##                pitch_arm                  yaw_arm          total_accel_arm 
+##                        0                        0                        0 
+##            var_accel_arm             avg_roll_arm          stddev_roll_arm 
+##                    19216                    19216                    19216 
+##             var_roll_arm            avg_pitch_arm         stddev_pitch_arm 
+##                    19216                    19216                    19216 
+##            var_pitch_arm              avg_yaw_arm           stddev_yaw_arm 
+##                    19216                    19216                    19216 
+##              var_yaw_arm              gyros_arm_x              gyros_arm_y 
+##                    19216                        0                        0 
+##              gyros_arm_z              accel_arm_x              accel_arm_y 
+##                        0                        0                        0 
+##              accel_arm_z             magnet_arm_x             magnet_arm_y 
+##                        0                        0                        0 
+##             magnet_arm_z        kurtosis_roll_arm       kurtosis_picth_arm 
+##                        0                    19294                    19296 
+##         kurtosis_yaw_arm        skewness_roll_arm       skewness_pitch_arm 
+##                    19227                    19293                    19296 
+##         skewness_yaw_arm             max_roll_arm            max_picth_arm 
+##                    19227                    19216                    19216 
+##              max_yaw_arm             min_roll_arm            min_pitch_arm 
+##                    19216                    19216                    19216 
+##              min_yaw_arm       amplitude_roll_arm      amplitude_pitch_arm 
+##                    19216                    19216                    19216 
+##        amplitude_yaw_arm            roll_dumbbell           pitch_dumbbell 
+##                    19216                        0                        0 
+##             yaw_dumbbell   kurtosis_roll_dumbbell  kurtosis_picth_dumbbell 
+##                        0                    19221                    19218 
+##    kurtosis_yaw_dumbbell   skewness_roll_dumbbell  skewness_pitch_dumbbell 
+##                    19622                    19220                    19217 
+##    skewness_yaw_dumbbell        max_roll_dumbbell       max_picth_dumbbell 
+##                    19622                    19216                    19216 
+##         max_yaw_dumbbell        min_roll_dumbbell       min_pitch_dumbbell 
+##                    19221                    19216                    19216 
+##         min_yaw_dumbbell  amplitude_roll_dumbbell amplitude_pitch_dumbbell 
+##                    19221                    19216                    19216 
+##   amplitude_yaw_dumbbell     total_accel_dumbbell       var_accel_dumbbell 
+##                    19221                        0                    19216 
+##        avg_roll_dumbbell     stddev_roll_dumbbell        var_roll_dumbbell 
+##                    19216                    19216                    19216 
+##       avg_pitch_dumbbell    stddev_pitch_dumbbell       var_pitch_dumbbell 
+##                    19216                    19216                    19216 
+##         avg_yaw_dumbbell      stddev_yaw_dumbbell         var_yaw_dumbbell 
+##                    19216                    19216                    19216 
+##         gyros_dumbbell_x         gyros_dumbbell_y         gyros_dumbbell_z 
+##                        0                        0                        0 
+##         accel_dumbbell_x         accel_dumbbell_y         accel_dumbbell_z 
+##                        0                        0                        0 
+##        magnet_dumbbell_x        magnet_dumbbell_y        magnet_dumbbell_z 
+##                        0                        0                        0 
+##             roll_forearm            pitch_forearm              yaw_forearm 
+##                        0                        0                        0 
+##    kurtosis_roll_forearm   kurtosis_picth_forearm     kurtosis_yaw_forearm 
+##                    19300                    19301                    19622 
+##    skewness_roll_forearm   skewness_pitch_forearm     skewness_yaw_forearm 
+##                    19299                    19301                    19622 
+##         max_roll_forearm        max_picth_forearm          max_yaw_forearm 
+##                    19216                    19216                    19300 
+##         min_roll_forearm        min_pitch_forearm          min_yaw_forearm 
+##                    19216                    19216                    19300 
+##   amplitude_roll_forearm  amplitude_pitch_forearm    amplitude_yaw_forearm 
+##                    19216                    19216                    19300 
+##      total_accel_forearm        var_accel_forearm         avg_roll_forearm 
+##                        0                    19216                    19216 
+##      stddev_roll_forearm         var_roll_forearm        avg_pitch_forearm 
+##                    19216                    19216                    19216 
+##     stddev_pitch_forearm        var_pitch_forearm          avg_yaw_forearm 
+##                    19216                    19216                    19216 
+##       stddev_yaw_forearm          var_yaw_forearm          gyros_forearm_x 
+##                    19216                    19216                        0 
+##          gyros_forearm_y          gyros_forearm_z          accel_forearm_x 
+##                        0                        0                        0 
+##          accel_forearm_y          accel_forearm_z         magnet_forearm_x 
+##                        0                        0                        0 
+##         magnet_forearm_y         magnet_forearm_z                   classe 
+##                        0                        0                        0
+</pre></div>
+</div></div>
+we can see that there are some variables with about 19200 NA values in the observations. Since these variables are not useful for the prediction purpose, we remove them from the dataset.
+</p>
+
+<div class="chunk" id="unnamed-chunk-8"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">tr</span><span class="hl kwb">=</span><span class="hl std">train[,</span><span class="hl opt">-</span><span class="hl std">(</span><span class="hl kwd">which</span><span class="hl std">(</span><span class="hl kwd">colSums</span><span class="hl std">(</span><span class="hl kwd">is.na</span><span class="hl std">(train))</span> <span class="hl opt">&gt;</span> <span class="hl num">19200</span><span class="hl std">))]</span>
+</pre></div>
+</div></div>
+
+<p>Then we name the Class variable as a factor</p>
+<div class="chunk" id="unnamed-chunk-9"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">tr</span><span class="hl opt">$</span><span class="hl std">classe</span><span class="hl kwb">=</span><span class="hl kwd">factor</span><span class="hl std">(tr</span><span class="hl opt">$</span><span class="hl std">classe)</span>
+</pre></div>
+</div></div>
+
+<p>After that, let's create training (70%) and testing (30%) set from the data we have. We will use the testing set to calculate an estimation of the out-of-sample error.</p>
+<div class="chunk" id="unnamed-chunk-10"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">inTrain</span><span class="hl kwb">=</span><span class="hl kwd">createDataPartition</span><span class="hl std">(</span><span class="hl kwc">y</span><span class="hl std">=tr</span><span class="hl opt">$</span><span class="hl std">classe,</span><span class="hl kwc">p</span><span class="hl std">=</span><span class="hl num">0.7</span><span class="hl std">,</span><span class="hl kwc">list</span><span class="hl std">=F)</span>
+<span class="hl std">training</span><span class="hl kwb">=</span><span class="hl std">tr[inTrain,]</span>
+<span class="hl std">testing</span><span class="hl kwb">=</span><span class="hl std">tr[</span><span class="hl opt">-</span><span class="hl std">inTrain,]</span>
+</pre></div>
+</div></div>
+<b>PREDICTION MODEL AND OOB ERROR</b>
+<p> For the creation of the prediction model, we use the Random Forest function </p>
+<div class="chunk" id="unnamed-chunk-11"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">modFit</span><span class="hl kwb">=</span><span class="hl kwd">randomForest</span><span class="hl std">(classe</span><span class="hl opt">~</span><span class="hl std">.,</span> <span class="hl kwc">data</span><span class="hl std">=tr)</span>
+<span class="hl std">modFit</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## 
+## Call:
+##  randomForest(formula = classe ~ ., data = tr) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 7
+## 
+##         OOB estimate of  error rate: 0.28%
+## Confusion matrix:
+##      A    B    C    D    E  class.error
+## A 5577    2    0    0    1 0.0005376344
+## B   11 3783    3    0    0 0.0036871214
+## C    0   11 3411    0    0 0.0032144944
+## D    0    0   20 3195    1 0.0065298507
+## E    0    0    1    4 3602 0.0013861935
+</pre></div>
+</div></div>
+<p>The estimate of OOB error is really low (0.28%)</p>
+
+<b>PREDICTING NEW VALUES</b>
+<p>In order to predict the classe label for the testing values, we perform this command</p>
+<div class="chunk" id="unnamed-chunk-12"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">pred</span><span class="hl kwb">=</span><span class="hl kwd">predict</span><span class="hl std">(modFit,testing)</span>
+</pre></div>
+</div></div>
+<p>The related confusion Matrix is:</p>
+<div class="chunk" id="unnamed-chunk-13"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">confusionMatrix</span><span class="hl std">(pred,testing</span><span class="hl opt">$</span><span class="hl std">classe)</span>
+</pre></div>
+<div class="output"><pre class="knitr r">## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1674    0    0    0    0
+##          B    0 1139    0    0    0
+##          C    0    0 1026    0    0
+##          D    0    0    0  964    0
+##          E    0    0    0    0 1082
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9994, 1)
+##     No Information Rate : 0.2845     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar's Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000
+</pre></div>
+</div></div>
+
+<p>The Overall Statistics section (Accuracy, Kappa) shows the out-of-sample error rate. In particular, in this case Accuracy is 100%.
+
+Using the dataset pml_testing.csv as new data, it is possible to see that all the cases were correctly predicted.
+</body>
+</html>
