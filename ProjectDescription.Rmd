@@ -1,0 +1,85 @@
+---
+title: "Coursera Practical ML"
+output: html_document
+---
+**GENERAL INFORMATION**
+The purpose of this project is to classify a set of exercise movements.
+There are four classes (A,B,C,D,E) corresponding to the labels "Correct","Throwing elbows to the front", "lifting dumbbell only halfway", "lowering dumbbell only halfaway", "throwing hips to the front".
+The data for this project come from this source: <http://groupware.les.inf.puc-rio.br/har>. 
+There are two datasets. A training dataset *pml_training.csv* and a test dataset *pml_testing.csv*
+
+First of all let's load the packages that wil lbe used and let's set a seed for reproducibility
+
+```{r}
+library(caret)
+library(randomForest)
+set.seed(28071984)
+```
+
+
+**DATA EXPLORATION**
+Looking at the pml_training.csv, it is possible to see that there are two kinds of missing values: "NA" values and “#DIV/0!”. Moreover, all the values are separated by a comma.
+Only the variables that contains the names 
+
+** _arm _belt _dumbbell _forearm **     
+
+are related to sensor values. The other ones are information not useful for the prediction purpose.The Classe variable is the outcome we want to predict.
+
+
+**DATA LOADING AND CLEANING**
+First of all we load the dataset
+
+```{r}
+pml_training = read.csv("pml-training.csv", header = TRUE, sep = ",", na.strings = c("NA", "#DIV/0!"))
+```
+Then we use only the sensor data related variables together with the classe variable
+```{r}
+colOfInterest = grep(pattern = "_arm|_belt|_dumbbell|_forearm", names(pml_training))
+columnsOfInterestTraining=c(colOfInterest,dim(pml_training)[2])
+train=pml_training[,columnsOfInterestTraining]
+```
+
+If we perform the command
+
+```{r}
+colSums(is.na(train))
+```
+we can see that there are some variables with about 19200 NA values in the observations. Since these variables are not useful for the prediction purpose, we remove them from the dataset.
+
+```{r}
+tr=train[,-(which(colSums(is.na(train)) > 19200))]
+```
+
+Then we name the Class variable as a factor
+```{r}
+tr$classe=factor(tr$classe)
+```
+
+After that, let's create training (70%) and testing (30%) set from the data we have. We will use the testing set to calculate an estimation of the out-of-sample error.</p>
+```{r}
+inTrain=createDataPartition(y=tr$classe,p=0.7,list=F)
+training=tr[inTrain,]
+testing=tr[-inTrain,]
+```
+**PREDICTION MODEL AND OOB ERROR**
+For the creation of the prediction model, we use the Random Forest function
+```{r}
+modFit=randomForest(classe~., data=tr)
+modFit
+```
+
+The estimate of OOB error is really low (0.28%)
+
+**PREDICTING NEW VALUES**
+In order to predict the classe label for the testing values, we perform this command
+```{r}
+pred=predict(modFit,testing)
+```
+The related confusion Matrix is:
+```{r}
+confusionMatrix(pred,testing$classe)
+```
+
+The Overall Statistics section (Accuracy, Kappa) shows the out-of-sample error rate. In particular, in this case Accuracy is 100%.
+
+Using the dataset **pml_testing.csv** as new data, it is possible to see that all the cases were correctly predicted.
